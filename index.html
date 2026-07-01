@@ -6,7 +6,7 @@
 <title>Galaxy Love — Ayaa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/galaxy.css" />
+<link rel="stylesheet" href="galaxy.css" />
 </head>
 <body>
 
@@ -16,7 +16,7 @@
 
   <div id="orbitLayer" class="orbit-layer"></div>
 
-  <div class="hud">
+  <div class="hud" id="hud">
     <p class="eyebrow">sebuah galaksi kecil, berisi</p>
     <h1 class="lover-name" id="loverName"></h1>
   </div>
@@ -27,10 +27,25 @@
     <span class="core-label">PENCET</span>
   </button>
 
+  <!-- ===== intro card: tampil pertama sebelum zoom ke galaksi ===== -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-card">
+      <span class="intro-heart">♡</span>
+      <p class="intro-kicker">LOVE</p>
+      <h2 class="intro-title">Galaxy Love</h2>
+      <p class="intro-sub">sebuah undangan menuju semesta kecil kita</p>
+      <button class="intro-btn" id="introBtn">
+        <span>MULAI</span>
+        <span class="intro-btn-heart">♡</span>
+      </button>
+    </div>
+  </div>
+
   <div id="flash" class="supernova-flash"></div>
 
-  <script src="js/data.js"></script>
+  <script src="data.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="js/galaxy.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="galaxy.js"></script>
 </body>
 </html>
