@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title id="pageTitle">Happy Birthday</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+  <div class="lantern-field" id="lanternField"></div>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <p class="hero-eyebrow">malam ini, langit menyalakan satu lentera lagi untuk</p>
+    <h1 class="hero-title" id="heroTitle">Happy Birthday</h1>
+    <p class="hero-date" id="heroDate"></p>
+    <button class="scroll-cue" id="scrollCue">
+      <span>buka kadonya</span>
+      <span class="cue-arrow">↓</span>
+    </button>
+  </section>
+
+  <!-- ============ GIFT ============ -->
+  <section class="gift-section" id="giftSection">
+    <p class="section-label">01 — sebuah kado</p>
+    <h2 class="section-title">Ada sesuatu untukmu</h2>
+    <p class="section-sub">Tarik pita-nya pelan-pelan.</p>
+
+    <div class="gift-stage">
+      <div class="gift-glow"></div>
+      <button class="gift-box" id="giftBox" aria-label="Buka kado">
+        <div class="box-lid">
+          <div class="bow">
+            <span class="bow-loop left"></span>
+            <span class="bow-loop right"></span>
+            <span class="bow-knot"></span>
+          </div>
+        </div>
+        <div class="ribbon-v"></div>
+        <div class="box-base">
+          <div class="ribbon-v static"></div>
+        </div>
+      </button>
+    </div>
+    <p class="gift-hint" id="giftHint">ketuk kadonya</p>
+  </section>
+
+  <!-- ============ LETTER ============ -->
+  <section class="letter-section reveal-on-gift" id="letterSection">
+    <p class="section-label">02 — sepucuk surat</p>
+    <h2 class="section-title">Untukmu, malam ini</h2>
+    <div class="letter-card">
+      <div class="wax-seal">✉</div>
+      <p class="letter-text" id="letterText"></p>
+      <span class="letter-cursor" id="letterCursor">|</span>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section class="gallery-section reveal-on-gift" id="gallerySection">
+    <p class="section-label">03 — jejak kenangan</p>
+    <h2 class="section-title">Potret-potret kecil</h2>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </section>
+
+  <!-- ============ CLOSING ============ -->
+  <section class="closing-section reveal-on-gift" id="closingSection">
+    <div class="closing-glow"></div>
+    <p class="section-label">04 — penutup</p>
+    <h2 class="closing-title">Selamat ulang tahun, <span id="closingName"></span> 🕯️</h2>
+    <p class="closing-text">
+      Semoga tahun ini melipatgandakan semua hal baik yang datang padamu —
+      dan semoga setiap lentera yang terbang malam ini membawa satu harapanmu
+      lebih dekat ke langit.
+    </p>
+    <footer class="site-footer">Made with love · site by Alan</footer>
+  </section>
+
+  <!-- ============ MUSIC PLAYER (persistent) ============ -->
+  <div class="music-player" id="musicPlayer">
+    <button class="music-toggle" id="musicToggle" aria-label="Putar musik">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+    <span class="music-title" id="musicTitle"></span>
+    <audio id="audioEl" loop preload="none"></audio>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ LIGHTBOX ============ -->
+  <div class="lightbox" id="lightbox">
+    <img src="" alt="" id="lightboxImg" />
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
