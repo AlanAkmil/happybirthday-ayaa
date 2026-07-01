@@ -6,11 +6,22 @@
 <title id="pageTitle">Happy Birthday</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css" />
+<link rel="stylesheet" href="main.css" />
 </head>
 <body>
 
   <div class="lantern-field" id="lanternField"></div>
+
+  <!-- ============ LOCK SCREEN ============ -->
+  <div class="lock-overlay" id="lockOverlay">
+    <div class="lock-card">
+      <span class="lock-flower">✿</span>
+      <h2 class="lock-title">Untukmu, Sayang</h2>
+      <p class="lock-sub" id="lockHint">masukkan kode rahasia kalian</p>
+      <div class="lock-dots" id="lockDots"></div>
+      <div class="lock-pad" id="lockPad"></div>
+    </div>
+  </div>
 
   <!-- ============ HERO ============ -->
   <section class="hero">
@@ -48,34 +59,46 @@
     <p class="gift-hint" id="giftHint">ketuk kadonya</p>
   </section>
 
+  <!-- ============ BOUQUET ============ -->
+  <section class="bouquet-section reveal-on-gift" id="bouquetSection">
+    <p class="section-label">02 — buket digital</p>
+    <h2 class="section-title scroll-reveal">Petik satu bunga</h2>
+    <p class="section-sub">tiap kelopak nyimpen satu potong rasa</p>
+    <div class="bouquet-field scroll-reveal" id="bouquetField"></div>
+    <div class="bouquet-note" id="bouquetNote">tap salah satu bunga di atas ✿</div>
+  </section>
+
   <!-- ============ LETTER ============ -->
   <section class="letter-section reveal-on-gift" id="letterSection">
-    <p class="section-label">02 — sepucuk surat</p>
+    <p class="section-label">03 — sepucuk surat</p>
     <h2 class="section-title">Untukmu, malam ini</h2>
-    <div class="letter-card">
+    <div class="letter-card scroll-reveal">
       <div class="wax-seal">✉</div>
       <p class="letter-text" id="letterText"></p>
       <span class="letter-cursor" id="letterCursor">|</span>
     </div>
   </section>
 
+  <!-- ============ TIMELINE ============ -->
+  <section class="timeline-section reveal-on-gift" id="timelineSection">
+    <p class="section-label">04 — perjalanan kita</p>
+    <h2 class="section-title">Cerita yang Kita Tulis</h2>
+    <div class="timeline-track" id="timelineTrack"></div>
+  </section>
+
   <!-- ============ GALLERY ============ -->
   <section class="gallery-section reveal-on-gift" id="gallerySection">
-    <p class="section-label">03 — jejak kenangan</p>
+    <p class="section-label">05 — jejak kenangan</p>
     <h2 class="section-title">Potret-potret kecil</h2>
-    <div class="gallery-grid" id="galleryGrid"></div>
+    <div class="gallery-grid scroll-reveal" id="galleryGrid"></div>
   </section>
 
   <!-- ============ CLOSING ============ -->
   <section class="closing-section reveal-on-gift" id="closingSection">
     <div class="closing-glow"></div>
-    <p class="section-label">04 — penutup</p>
-    <h2 class="closing-title">Selamat ulang tahun, <span id="closingName"></span> 🕯️</h2>
-    <p class="closing-text">
-      Semoga tahun ini melipatgandakan semua hal baik yang datang padamu —
-      dan semoga setiap lentera yang terbang malam ini membawa satu harapanmu
-      lebih dekat ke langit.
-    </p>
+    <p class="section-label">06 — penutup</p>
+    <h2 class="closing-title scroll-reveal">Selamat ulang tahun, <span id="closingName"></span> 🕯️</h2>
+    <p class="closing-text scroll-reveal" id="closingText"></p>
     <footer class="site-footer">Made with love · site by Alan</footer>
   </section>
 
@@ -94,7 +117,7 @@
     <img src="" alt="" id="lightboxImg" />
   </div>
 
-  <script src="js/data.js"></script>
-  <script src="js/main.js"></script>
+  <script src="data.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
