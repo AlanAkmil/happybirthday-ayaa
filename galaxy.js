@@ -5,11 +5,6 @@
 (function () {
   "use strict";
 
-  // ============================================================
-  // SAFETY NET: pastikan tombol MULAI selalu jalan, bahkan kalau
-  // three.js/CDN gagal load (koneksi lemot dll). Ini didaftarkan
-  // BENERAN PALING AWAL, sebelum baris apapun yang bisa throw.
-  // ============================================================
   let threeReady = false;
   let fancyStart = null;
   const introBtnEl = document.getElementById("introBtn");
@@ -23,7 +18,6 @@
     if (threeReady && fancyStart) {
       fancyStart();
     } else {
-      // fallback: three.js belum/gagal siap, langsung lanjut ke page 2
       document.getElementById("hud").classList.add("visible");
       setTimeout(() => {
         window.location.href = "page2.html";
@@ -31,7 +25,6 @@
     }
   });
 
-  // ---------- fill in name from data.js (sekarang aman, gak bisa crash script) ----------
   try {
     document.getElementById("loverName").textContent = SITE_DATA.name;
   } catch (err) {
@@ -39,7 +32,6 @@
   }
 
   try {
-  // ---------- renderer / scene / camera ----------
   const canvas = document.getElementById("scene");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -195,7 +187,7 @@
   const vortexColFar = new THREE.Color(0x4b1a6b);
 
   const ARMS = 3;
-  const TWISTS = 2.4;
+  const TWISTS = 3;
   const INNER_R = 2.2;
   const OUTER_R = 18;
 
@@ -208,7 +200,7 @@
       t * TWISTS * Math.PI * 2 +
       (Math.random() - 0.5) * 0.45;
     const x = Math.cos(spiralAngle) * radius;
-    const z = Math.sin(spiralAngle) * radius * 0.42;
+    const z = Math.sin(spiralAngle) * radius * 0.85;
     const y = -8 + (Math.random() - 0.5) * 0.7;
 
     vortexPositions[i * 3] = x;
@@ -247,7 +239,7 @@
     const radius = INNER_R + Math.random() * (OUTER_R - INNER_R);
     sparkPositions[i * 3] = Math.cos(angle) * radius;
     sparkPositions[i * 3 + 1] = -8 + (Math.random() - 0.5) * 1.4;
-    sparkPositions[i * 3 + 2] = Math.sin(angle) * radius * 0.42;
+    sparkPositions[i * 3 + 2] = Math.sin(angle) * radius * 0.85;
     const c = vortexColMid.clone().lerp(vortexColEdge, Math.random());
     sparkColors[i * 3] = c.r;
     sparkColors[i * 3 + 1] = c.g;
