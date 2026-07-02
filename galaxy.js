@@ -97,11 +97,14 @@
     // piringan spiral & love di tengahnya kebaca jelas kayak foto galaksi,
     // gak keliatan gepeng jadi garis doang.
     polar: Math.PI / 2 - 0.78,
-    minAzimuth: -0.7,
-    maxAzimuth: 0.7,
-    minPolar: Math.PI / 2 - 0.95,
-    maxPolar: Math.PI / 2 - 0.4,
+    // FULL 360°: azimuth udah gak dibatasi lagi (bebas puter kemana aja).
+    // polar tetep dikasih batas dikit biar kamera gak "kebalik" pas
+    // ngelewatin kutub atas/bawah (gimbal flip).
+    minPolar: 0.18,
+    maxPolar: Math.PI - 0.18,
     radius: FINAL_Z,
+    minRadius: 12, // paling deket, biar bisa "masuk" ke tengah galaksi
+    maxRadius: 95, // paling jauh, biar bisa liat galaksi dari luar + nebula
     autoDrift: 0.06, // ambient sway kecil kalau lagi gak di-drag
   };
 
@@ -117,35 +120,78 @@
   }
   function dragMove(x, y) {
     if (!controls.enabled || !dragging) return;
-    const dx = (x - lastX) * 0.005;
-    const dy = (y - lastY) * 0.005;
+    const dx = (x - lastX) * 0.006;
+    const dy = (y - lastY) * 0.006;
     lastX = x;
     lastY = y;
-    controls.azimuth = Math.min(controls.maxAzimuth, Math.max(controls.minAzimuth, controls.azimuth + dx));
+    // azimuth bebas puter 360°, gak di-clamp lagi
+    controls.azimuth += dx;
     controls.polar = Math.min(controls.maxPolar, Math.max(controls.minPolar, controls.polar + dy));
   }
   function dragEnd() {
     dragging = false;
   }
+  function zoomBy(delta) {
+    if (!controls.enabled) return;
+    controls.radius = Math.min(controls.maxRadius, Math.max(controls.minRadius, controls.radius + delta));
+  }
 
   renderer.domElement.addEventListener("mousedown", (e) => dragStart(e.clientX, e.clientY));
   window.addEventListener("mousemove", (e) => dragMove(e.clientX, e.clientY));
   window.addEventListener("mouseup", dragEnd);
+
+  // scroll wheel = zoom in/out (desktop)
+  renderer.domElement.addEventListener(
+    "wheel",
+    (e) => {
+      if (!controls.enabled) return;
+      e.preventDefault();
+      zoomBy(e.deltaY * 0.03);
+    },
+    { passive: false }
+  );
+
+  // touch: 1 jari = puter kamera 360°, 2 jari (pinch) = zoom
+  let pinchStartDist = null;
+  let pinchStartRadius = controls.radius;
+  function touchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
   renderer.domElement.addEventListener(
     "touchstart",
     (e) => {
-      if (e.touches.length) dragStart(e.touches[0].clientX, e.touches[0].clientY);
+      if (e.touches.length === 2) {
+        dragging = false;
+        pinchStartDist = touchDist(e.touches);
+        pinchStartRadius = controls.radius;
+      } else if (e.touches.length === 1) {
+        dragStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
     },
     { passive: true }
   );
   renderer.domElement.addEventListener(
     "touchmove",
     (e) => {
-      if (e.touches.length) dragMove(e.touches[0].clientX, e.touches[0].clientY);
+      if (e.touches.length === 2 && pinchStartDist) {
+        const dist = touchDist(e.touches);
+        const ratio = pinchStartDist / dist;
+        controls.radius = Math.min(
+          controls.maxRadius,
+          Math.max(controls.minRadius, pinchStartRadius * ratio)
+        );
+      } else if (e.touches.length === 1) {
+        dragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
     },
     { passive: true }
   );
-  renderer.domElement.addEventListener("touchend", dragEnd);
+  renderer.domElement.addEventListener("touchend", (e) => {
+    if (e.touches.length < 2) pinchStartDist = null;
+    if (e.touches.length === 0) dragEnd();
+  });
 
   function updateControls(t) {
     if (!controls.enabled) return;
@@ -417,6 +463,46 @@
   const dustPoints = new THREE.Points(dustGeo, dustMat);
   scene.add(dustPoints);
 
+  // ---------- nebula awan besar jauh di kejauhan (dekorasi background) ----------
+  // Sprite selalu ngadep kamera (billboard), jadi tetep keliatan "awan"
+  // dari sudut manapun kamera diputer — cocok buat kontrol 360°.
+  function makeNebulaSprite(colorA, colorB, size, opacity) {
+    const c = document.createElement("canvas");
+    c.width = 256;
+    c.height = 256;
+    const ctx = c.getContext("2d");
+    const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, colorA);
+    grad.addColorStop(0.45, colorB);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 256, 256);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.SpriteMaterial({
+      map: tex,
+      transparent: true,
+      opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(size, size, 1);
+    return sprite;
+  }
+
+  const nebulaConfigs = [
+    { colorA: "rgba(255,90,140,0.55)", colorB: "rgba(120,20,70,0.25)", size: 140, opacity: 0.35, pos: [-160, 40, -220] },
+    { colorA: "rgba(140,90,255,0.5)", colorB: "rgba(60,20,110,0.22)", size: 170, opacity: 0.32, pos: [190, -30, -260] },
+    { colorA: "rgba(90,180,255,0.4)", colorB: "rgba(30,60,130,0.2)", size: 130, opacity: 0.28, pos: [-40, -120, -300] },
+    { colorA: "rgba(255,180,120,0.4)", colorB: "rgba(140,60,20,0.18)", size: 110, opacity: 0.25, pos: [120, 110, -240] },
+  ];
+  const nebulaSprites = nebulaConfigs.map((cfg) => {
+    const sprite = makeNebulaSprite(cfg.colorA, cfg.colorB, cfg.size, cfg.opacity);
+    sprite.position.set(cfg.pos[0], cfg.pos[1] + TARGET_Y, cfg.pos[2]);
+    scene.add(sprite);
+    return sprite;
+  });
+
   // ---------- animation loop ----------
   const clock = new THREE.Clock();
   let introDone = false;
@@ -435,6 +521,9 @@
     nearStarPoints.rotation.y = t * 0.02;
     dustPoints.rotation.y = -t * 0.015;
     starPoints.rotation.y = t * 0.01;
+    nebulaSprites.forEach((s, i) => {
+      s.material.opacity = nebulaConfigs[i].opacity * (0.85 + Math.sin(t * 0.08 + i * 2) * 0.15);
+    });
 
     if (introDone) {
       updateControls(t);
@@ -502,6 +591,17 @@
 
   const orbiters = [];
 
+  // ---------- lightbox: klik foto orbit buat liat versi gedenya ----------
+  const lightbox = document.getElementById("photoLightbox");
+  const lightboxImg = document.getElementById("photoLightboxImg");
+  function openLightbox(src) {
+    lightboxImg.src = src;
+    lightbox.classList.add("visible");
+  }
+  if (lightbox) {
+    lightbox.addEventListener("click", () => lightbox.classList.remove("visible"));
+  }
+
   SITE_DATA.orbitPhotos.forEach((src, i) => {
     const el = document.createElement("div");
     el.className = "orbit-photo";
@@ -510,6 +610,11 @@
     img.alt = "kenangan";
     el.appendChild(img);
     orbitLayer.appendChild(el);
+
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openLightbox(src);
+    });
 
     orbiters.push({
       el,
