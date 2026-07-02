@@ -96,11 +96,11 @@
     // ditilt ke bawah dikit (bukan pas PI/2 = lurus dari samping) biar
     // piringan spiral & love di tengahnya kebaca jelas kayak foto galaksi,
     // gak keliatan gepeng jadi garis doang.
-    polar: Math.PI / 2 - 0.55,
+    polar: Math.PI / 2 - 0.78,
     minAzimuth: -0.7,
     maxAzimuth: 0.7,
-    minPolar: Math.PI / 2 - 0.85,
-    maxPolar: Math.PI / 2 - 0.15,
+    minPolar: Math.PI / 2 - 0.95,
+    maxPolar: Math.PI / 2 - 0.4,
     radius: FINAL_Z,
     autoDrift: 0.06, // ambient sway kecil kalau lagi gak di-drag
   };
@@ -172,10 +172,11 @@
     return { x, y };
   }
 
-  // HEART_CENTER_Y = titik pusat piringan spiral (samain sama vortex di
-  // bawah) — biar si love keliatan NEMPEL di tengah-tengah galaksi, bukan
-  // ngambang misah kayak build sebelumnya.
-  const HEART_CENTER_Y = TARGET_Y;
+  // HEART_CENTER_Y = titik love ngambang PAS DI ATAS piringan spiral —
+  // sebelumnya kesamaan persis sama TARGET_Y jadi ring-nya kepotong ke
+  // TENGAH si love (kayak cincin Saturnus nembus jantung). Sekarang love
+  // digeser ke atas biar ring-nya jelas kebaca DI BAWAH love, bukan nembus.
+  const HEART_CENTER_Y = TARGET_Y + 12;
 
   const HEART_COUNT = 16000;
   const heartPositions = new Float32Array(HEART_COUNT * 3);
@@ -252,15 +253,22 @@
 
   for (let i = 0; i < VORTEX_COUNT; i++) {
     const arm = i % ARMS;
-    const t = Math.random(); // 0 = dekat pusat, 1 = pinggir
+    // t dibikin ngumpul lebih padet deket pusat (pow 1.35) biar makin ke
+    // ujung makin jarang/tipis partikelnya = kesan "mengecil" di ujung
+    const t = Math.pow(Math.random(), 1.35);
     const radius = INNER_R + t * (OUTER_R - INNER_R);
+    // jitter sudut ikut ngecil pas mendekati ujung (t besar) biar lengan
+    // spiralnya beneran meruncing, gak ngeblob lebar di ujung
+    const armJitter = 0.45 * (1 - t * 0.7);
     const spiralAngle =
       (arm / ARMS) * Math.PI * 2 +
       t * TWISTS * Math.PI * 2 +
-      (Math.random() - 0.5) * 0.45; // jitter biar gak kaku
+      (Math.random() - 0.5) * armJitter;
     const x = Math.cos(spiralAngle) * radius;
-    const z = Math.sin(spiralAngle) * radius * 0.42; // gepeng, kesan piringan miring
-    const y = HEART_CENTER_Y + (Math.random() - 0.5) * 0.7;
+    // flatten dikurangin (0.42 -> 0.72) + kamera lebih ke atas biar
+    // piringannya kebaca BULAT, bukan oval/lonjong kayak sebelumnya
+    const z = Math.sin(spiralAngle) * radius * 0.72;
+    const y = TARGET_Y + (Math.random() - 0.5) * 0.7 * (1 - t * 0.5);
 
     vortexPositions[i * 3] = x;
     vortexPositions[i * 3 + 1] = y;
@@ -297,11 +305,12 @@
   const sparkPositions = new Float32Array(SPARK_COUNT * 3);
   const sparkColors = new Float32Array(SPARK_COUNT * 3);
   for (let i = 0; i < SPARK_COUNT; i++) {
+    const t2 = Math.pow(Math.random(), 1.35); // sama, numpuk deket pusat
     const angle = Math.random() * Math.PI * 2;
-    const radius = INNER_R + Math.random() * (OUTER_R - INNER_R);
+    const radius = INNER_R + t2 * (OUTER_R - INNER_R);
     sparkPositions[i * 3] = Math.cos(angle) * radius;
-    sparkPositions[i * 3 + 1] = HEART_CENTER_Y + (Math.random() - 0.5) * 1.4;
-    sparkPositions[i * 3 + 2] = Math.sin(angle) * radius * 0.42;
+    sparkPositions[i * 3 + 1] = TARGET_Y + (Math.random() - 0.5) * 1.4 * (1 - t2 * 0.5);
+    sparkPositions[i * 3 + 2] = Math.sin(angle) * radius * 0.72;
     const c = vortexColMid.clone().lerp(vortexColEdge, Math.random());
     sparkColors[i * 3] = c.r;
     sparkColors[i * 3 + 1] = c.g;
