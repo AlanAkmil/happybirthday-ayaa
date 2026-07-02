@@ -174,29 +174,83 @@
   });
 
   // ============================================================
-  // GALLERY
+  // GALLERY — tumpukan foto yang bisa digeser (swipe/drag)
   // ============================================================
-  const grid = document.getElementById("galleryGrid");
-  SITE_DATA.photos.forEach((src, i) => {
-    const item = document.createElement("div");
-    item.className = "gallery-item";
-    item.style.setProperty("--tilt", `${(i % 2 === 0 ? -1 : 1) * (2 + (i % 3))}deg`);
-    const img = document.createElement("img");
-    img.src = src;
-    img.alt = "kenangan " + (i + 1);
-    img.loading = "lazy";
-    item.appendChild(img);
-    item.addEventListener("click", () => openLightbox(src));
-    grid.appendChild(item);
-  });
+  const stack = document.getElementById("photoStack");
+  const counterEl = document.getElementById("stackCounter");
+  const photos = SITE_DATA.photos;
+  let stackOrder = photos.map((_, i) => i); // urutan tampil, card depan = index 0
 
-  const lightbox = document.getElementById("lightbox");
-  const lightboxImg = document.getElementById("lightboxImg");
-  function openLightbox(src) {
-    lightboxImg.src = src;
-    lightbox.classList.add("active");
+  function renderStack() {
+    stack.innerHTML = "";
+    const visible = stackOrder.slice(0, 4); // render 4 kartu teratas aja (performa)
+    visible
+      .slice()
+      .reverse()
+      .forEach((photoIndex, pos) => {
+        const depth = visible.length - 1 - pos; // 0 = paling depan
+        const card = document.createElement("div");
+        card.className = "photo-card";
+        card.style.zIndex = 10 - depth;
+        card.style.setProperty("--depth", depth);
+        card.style.setProperty("--tilt", `${(photoIndex % 2 === 0 ? -1 : 1) * (3 + (photoIndex % 3))}deg`);
+        const img = document.createElement("img");
+        img.src = photos[photoIndex];
+        img.alt = "kenangan " + (photoIndex + 1);
+        card.appendChild(img);
+        stack.appendChild(card);
+
+        if (depth === 0) makeDraggable(card);
+      });
+    counterEl.textContent = `${photos.length - stackOrder.length + 1} / ${photos.length}`;
   }
-  lightbox.addEventListener("click", () => lightbox.classList.remove("active"));
+
+  function nextCard() {
+    if (stackOrder.length <= 1) return; // kartu terakhir, diem di situ
+    const front = stackOrder.shift();
+    stackOrder.push(front); // taruh di belakang biar bisa muter lagi
+    renderStack();
+  }
+
+  function makeDraggable(card) {
+    let startX = 0;
+    let currentX = 0;
+    let dragging = false;
+
+    function onDown(e) {
+      dragging = true;
+      startX = (e.touches ? e.touches[0].clientX : e.clientX);
+      card.style.transition = "none";
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      currentX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+      const rotate = currentX / 12;
+      card.style.transform = `translateX(${currentX}px) rotate(${rotate}deg)`;
+    }
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      card.style.transition = "transform 0.35s ease";
+      if (Math.abs(currentX) > 90) {
+        const dir = currentX > 0 ? 1 : -1;
+        card.style.transform = `translateX(${dir * 500}px) rotate(${dir * 40}deg)`;
+        setTimeout(nextCard, 250);
+      } else {
+        card.style.transform = "translateX(0) rotate(0deg)";
+      }
+      currentX = 0;
+    }
+
+    card.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    card.addEventListener("touchstart", onDown, { passive: true });
+    card.addEventListener("touchmove", onMove, { passive: true });
+    card.addEventListener("touchend", onUp);
+  }
+
+  renderStack();
 
   // ============================================================
   // SCROLL REVEAL (animasi muncul pelan & smooth pas discroll)
