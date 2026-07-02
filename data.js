@@ -9,10 +9,10 @@ const SITE_DATA = {
 
   orbitLabels: [
     "Ayaa",
-    "Amor Eterno",
-    "Infinito",
+    "Ayaa My Love",
+    "Selamanya menyukaimu",
     "Sayangku",
-    "Amor Eterno",
+    "Cintaku",
     "Untuk Selamanya",
     "Happy Birthday Ayaa 🎉❤️",
     "Happy Birthday Ayaa ❤️",
