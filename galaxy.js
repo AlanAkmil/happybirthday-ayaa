@@ -49,7 +49,36 @@
     1000
   );
   const FINAL_Z = 44; // "agak jauhan dikit" biar galaksinya kelihatan luas
+  // titik pusat galaksi (tempat si love & spiral duduk) — semua kamera &
+  // kontrol drag ngarah/orbit ke titik ini, bukan ke (0,0,0) lagi.
+  const TARGET_Y = -8;
   camera.position.set(0, 0, 9); // mulai dekat/di dalam bintang dulu
+
+  // ---------- sprite bulat glowing buat semua partikel ----------
+  // Default THREE.PointsMaterial tanpa map = titik KOTAK. Ini generate
+  // texture bulat lembut (radial gradient) di canvas, dipakai sebagai
+  // `map` di semua PointsMaterial biar hasilnya bulat & bercahaya.
+  function makeGlowSprite() {
+    const size = 64;
+    const c = document.createElement("canvas");
+    c.width = size;
+    c.height = size;
+    const ctx = c.getContext("2d");
+    const grad = ctx.createRadialGradient(
+      size / 2, size / 2, 0,
+      size / 2, size / 2, size / 2
+    );
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.35, "rgba(255,255,255,0.9)");
+    grad.addColorStop(0.7, "rgba(255,255,255,0.25)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+  const glowSprite = makeGlowSprite();
 
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -64,11 +93,14 @@
   const controls = {
     enabled: false,
     azimuth: 0,
-    polar: Math.PI / 2,
+    // ditilt ke bawah dikit (bukan pas PI/2 = lurus dari samping) biar
+    // piringan spiral & love di tengahnya kebaca jelas kayak foto galaksi,
+    // gak keliatan gepeng jadi garis doang.
+    polar: Math.PI / 2 - 0.55,
     minAzimuth: -0.7,
     maxAzimuth: 0.7,
-    minPolar: Math.PI / 2 - 0.5,
-    maxPolar: Math.PI / 2 + 0.5,
+    minPolar: Math.PI / 2 - 0.85,
+    maxPolar: Math.PI / 2 - 0.15,
     radius: FINAL_Z,
     autoDrift: 0.06, // ambient sway kecil kalau lagi gak di-drag
   };
@@ -121,9 +153,12 @@
     const az = controls.azimuth + drift;
     const x = controls.radius * Math.sin(controls.polar) * Math.sin(az);
     const z = controls.radius * Math.sin(controls.polar) * Math.cos(az);
-    const y = controls.radius * Math.cos(controls.polar) * -1 + controls.radius * Math.cos(Math.PI / 2);
+    const y =
+      controls.radius * Math.cos(controls.polar) * -1 +
+      controls.radius * Math.cos(Math.PI / 2) +
+      TARGET_Y;
     camera.position.set(x, y, z);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, TARGET_Y, 0);
   }
 
   // ---------- heart parametric shape ----------
@@ -137,7 +172,12 @@
     return { x, y };
   }
 
-  const HEART_COUNT = 9000;
+  // HEART_CENTER_Y = titik pusat piringan spiral (samain sama vortex di
+  // bawah) — biar si love keliatan NEMPEL di tengah-tengah galaksi, bukan
+  // ngambang misah kayak build sebelumnya.
+  const HEART_CENTER_Y = TARGET_Y;
+
+  const HEART_COUNT = 16000;
   const heartPositions = new Float32Array(HEART_COUNT * 3);
   const heartColors = new Float32Array(HEART_COUNT * 3);
 
@@ -154,8 +194,8 @@
     const scale = 0.62;
 
     const x = (p.x * fill + fuzz) * scale;
-    const y = (p.y * fill + fuzz) * scale + 1.5;
-    const z = (Math.random() - 0.5) * 3.2 * (1 - fill * 0.5);
+    const y = (p.y * fill + fuzz) * scale * 0.9 + HEART_CENTER_Y;
+    const z = (Math.random() - 0.5) * 3.4 * (1 - fill * 0.5);
 
     heartPositions[i * 3] = x;
     heartPositions[i * 3 + 1] = y;
@@ -177,7 +217,9 @@
   heartGeo.setAttribute("color", new THREE.BufferAttribute(heartColors, 3));
 
   const heartMat = new THREE.PointsMaterial({
-    size: 0.16,
+    size: 0.22,
+    map: glowSprite,
+    alphaTest: 0.01,
     vertexColors: true,
     transparent: true,
     opacity: 0.95,
@@ -193,7 +235,7 @@
   scene.add(heartPoints);
 
   // ---------- spiral vortex / black hole di bawah heart (kayak referensi) ----------
-  const VORTEX_COUNT = 11000;
+  const VORTEX_COUNT = 20000;
   const vortexPositions = new Float32Array(VORTEX_COUNT * 3);
   const vortexColors = new Float32Array(VORTEX_COUNT * 3);
   const vortexColCore = new THREE.Color(0xffffff);
@@ -203,8 +245,10 @@
 
   const ARMS = 3;
   const TWISTS = 2.4;
-  const INNER_R = 2.2; // radius kosong di tengah = "lubang hitam"
-  const OUTER_R = 18;
+  // lubang tengah diperkecil biar spiral-nya nempel & ngelilingin si love,
+  // bukan misah kayak sebelumnya (love sekarang duduk pas di titik pusat ini)
+  const INNER_R = 1.1;
+  const OUTER_R = 19;
 
   for (let i = 0; i < VORTEX_COUNT; i++) {
     const arm = i % ARMS;
@@ -216,7 +260,7 @@
       (Math.random() - 0.5) * 0.45; // jitter biar gak kaku
     const x = Math.cos(spiralAngle) * radius;
     const z = Math.sin(spiralAngle) * radius * 0.42; // gepeng, kesan piringan miring
-    const y = -8 + (Math.random() - 0.5) * 0.7;
+    const y = HEART_CENTER_Y + (Math.random() - 0.5) * 0.7;
 
     vortexPositions[i * 3] = x;
     vortexPositions[i * 3 + 1] = y;
@@ -235,7 +279,9 @@
   vortexGeo.setAttribute("position", new THREE.BufferAttribute(vortexPositions, 3));
   vortexGeo.setAttribute("color", new THREE.BufferAttribute(vortexColors, 3));
   const vortexMat = new THREE.PointsMaterial({
-    size: 0.16,
+    size: 0.18,
+    map: glowSprite,
+    alphaTest: 0.01,
     vertexColors: true,
     transparent: true,
     opacity: 0.9,
@@ -247,14 +293,14 @@
   scene.add(vortexPoints);
 
   // percikan kecil di tepi vortex biar makin rame (lapisan tambahan)
-  const SPARK_COUNT = 4000;
+  const SPARK_COUNT = 7000;
   const sparkPositions = new Float32Array(SPARK_COUNT * 3);
   const sparkColors = new Float32Array(SPARK_COUNT * 3);
   for (let i = 0; i < SPARK_COUNT; i++) {
     const angle = Math.random() * Math.PI * 2;
     const radius = INNER_R + Math.random() * (OUTER_R - INNER_R);
     sparkPositions[i * 3] = Math.cos(angle) * radius;
-    sparkPositions[i * 3 + 1] = -8 + (Math.random() - 0.5) * 1.4;
+    sparkPositions[i * 3 + 1] = HEART_CENTER_Y + (Math.random() - 0.5) * 1.4;
     sparkPositions[i * 3 + 2] = Math.sin(angle) * radius * 0.42;
     const c = vortexColMid.clone().lerp(vortexColEdge, Math.random());
     sparkColors[i * 3] = c.r;
@@ -265,7 +311,9 @@
   sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPositions, 3));
   sparkGeo.setAttribute("color", new THREE.BufferAttribute(sparkColors, 3));
   const sparkMat = new THREE.PointsMaterial({
-    size: 0.09,
+    size: 0.1,
+    map: glowSprite,
+    alphaTest: 0.01,
     vertexColors: true,
     transparent: true,
     opacity: 0.7,
@@ -277,7 +325,7 @@
   scene.add(sparkPoints);
 
   // ---------- starfield background: 2 layer biar rame & nyebar ----------
-  const STAR_COUNT = 7000;
+  const STAR_COUNT = 10000;
   const starPositions = new Float32Array(STAR_COUNT * 3);
   for (let i = 0; i < STAR_COUNT; i++) {
     const r = 40 + Math.random() * 220; // disebar lebih jauh & lebih variatif
@@ -291,6 +339,8 @@
   starGeo.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
   const starMat = new THREE.PointsMaterial({
     size: 0.35,
+    map: glowSprite,
+    alphaTest: 0.01,
     color: 0xffffff,
     transparent: true,
     opacity: 0.7,
@@ -299,7 +349,7 @@
   scene.add(starPoints);
 
   // layer bintang dekat + gede biar berasa "lewat" pas kamera zoom
-  const NEAR_STAR_COUNT = 900;
+  const NEAR_STAR_COUNT = 1400;
   const nearStarPositions = new Float32Array(NEAR_STAR_COUNT * 3);
   for (let i = 0; i < NEAR_STAR_COUNT; i++) {
     const r = 15 + Math.random() * 60;
@@ -313,6 +363,8 @@
   nearStarGeo.setAttribute("position", new THREE.BufferAttribute(nearStarPositions, 3));
   const nearStarMat = new THREE.PointsMaterial({
     size: 0.55,
+    map: glowSprite,
+    alphaTest: 0.01,
     color: 0xffe8d0,
     transparent: true,
     opacity: 0.85,
@@ -323,7 +375,7 @@
   scene.add(nearStarPoints);
 
   // debu nebula tipis buat atmosfer, warna ungu-pink lembut
-  const DUST_COUNT = 1800;
+  const DUST_COUNT = 2600;
   const dustPositions = new Float32Array(DUST_COUNT * 3);
   const dustColors = new Float32Array(DUST_COUNT * 3);
   const dustColA = new THREE.Color(0x4b1a6b);
@@ -345,6 +397,8 @@
   dustGeo.setAttribute("color", new THREE.BufferAttribute(dustColors, 3));
   const dustMat = new THREE.PointsMaterial({
     size: 0.5,
+    map: glowSprite,
+    alphaTest: 0.01,
     vertexColors: true,
     transparent: true,
     opacity: 0.18,
@@ -363,7 +417,7 @@
     const t = clock.getElapsedTime();
 
     heartPoints.rotation.y = Math.sin(t * 0.15) * 0.35;
-    heartPoints.position.y = 1.5 + Math.sin(t * 1.1) * 0.35; // gentle heartbeat float
+    heartPoints.position.y = Math.sin(t * 1.1) * 0.35; // gentle heartbeat float
     const beat = 1 + Math.sin(t * 2.6) * 0.02;
     heartPoints.scale.set(beat, beat, beat);
 
@@ -402,8 +456,8 @@
       const eased = easeOutCubic(progress);
 
       camera.position.z = startZ + (FINAL_Z - startZ) * eased;
-      camera.position.y = (1 - eased) * 4;
-      camera.lookAt(0, 0, 0);
+      camera.position.y = (1 - eased) * 4 + eased * TARGET_Y;
+      camera.lookAt(0, TARGET_Y * eased, 0);
 
       // heart & disk fade + scale in di paruh kedua animasi
       const revealProgress = Math.min(Math.max((progress - 0.35) / 0.65, 0), 1);
@@ -433,7 +487,9 @@
   // ============================================================
   const orbitLayer = document.getElementById("orbitLayer");
   orbitLayer.style.opacity = "0";
-  const centerYPercent = 55; // aligns with heart vertical position on screen
+  // kamera sekarang selalu ngeliat pas ke titik tengah love/spiral, jadi
+  // posisinya di layar ada persis di tengah (50%), gak perlu digeser lagi
+  const centerYPercent = 50;
 
   const orbiters = [];
 
