@@ -12,4 +12,13 @@ const SITE_PHOTOS = [
   "photo5.jpg",
   "photo6.jpg",
   "photo7.jpg",
+  "photo8.jpg",
+  "photo9.jpg",
+  "photo10.jpg",
+  "photo11.jpg",
+  "photo12.jpg",
+  "photo13.jpg",
+  "photo14.jpg",
+  "photo15.jpg",
+  "photo16.jpg",
 ];
