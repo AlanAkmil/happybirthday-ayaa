@@ -48,8 +48,8 @@
     0.1,
     1000
   );
-  const FINAL_Z = 44; // "agak jauhan dikit" biar galaksinya kelihatan luas
-  camera.position.set(0, 0, 9); // mulai dekat/di dalam bintang dulu
+  const FINAL_Z = 44;
+  camera.position.set(0, 0, 9);
 
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -57,10 +57,6 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // ---------- drag-to-look (custom, no external library needed) ----------
-  // Sebelumnya pakai OrbitControls dari CDN luar — kalau koneksi lemot dan
-  // script itu gagal ke-load, seluruh galaxy.js ikut berhenti (macet total,
-  // termasuk tombol MULAI). Sekarang murni vanilla, gak nunggu CDN lain.
   const controls = {
     enabled: false,
     azimuth: 0,
@@ -70,7 +66,7 @@
     minPolar: Math.PI / 2 - 0.5,
     maxPolar: Math.PI / 2 + 0.5,
     radius: FINAL_Z,
-    autoDrift: 0.06, // ambient sway kecil kalau lagi gak di-drag
+    autoDrift: 0.06,
   };
 
   let dragging = false;
@@ -126,7 +122,6 @@
     camera.lookAt(0, 0, 0);
   }
 
-  // ---------- heart parametric shape ----------
   function heartPoint(t) {
     const x = 16 * Math.pow(Math.sin(t), 3);
     const y =
@@ -148,8 +143,7 @@
   for (let i = 0; i < HEART_COUNT; i++) {
     const t = Math.random() * Math.PI * 2;
     const p = heartPoint(t);
-    // fill volume: shrink toward center with random factor, plus fuzz
-    const fill = Math.pow(Math.random(), 0.45); // bias toward edge for fluffy silhouette
+    const fill = Math.pow(Math.random(), 0.45);
     const fuzz = (Math.random() - 0.5) * 1.6;
     const scale = 0.62;
 
@@ -161,7 +155,6 @@
     heartPositions[i * 3 + 1] = y;
     heartPositions[i * 3 + 2] = z;
 
-    // color gradient: core white-pink -> mid crimson -> edge deep red
     const mixed =
       fill > 0.75
         ? colorCore.clone().lerp(colorMid, (1 - fill) * 4)
@@ -186,13 +179,9 @@
   });
 
   const heartPoints = new THREE.Points(heartGeo, heartMat);
-  // catatan: persamaan parametrik ini SUDAH lurus (lobe di atas, lancip di
-  // bawah) selama Y three.js menghadap ke atas — jangan dirotate 180deg lagi,
-  // itu penyebab bentuknya kebalik kayak toa/es krim di build sebelumnya.
-  heartPoints.material.opacity = 0; // fade in setelah zoom kelar
+  heartPoints.material.opacity = 0;
   scene.add(heartPoints);
 
-  // ---------- spiral vortex / black hole di bawah heart (kayak referensi) ----------
   const VORTEX_COUNT = 11000;
   const vortexPositions = new Float32Array(VORTEX_COUNT * 3);
   const vortexColors = new Float32Array(VORTEX_COUNT * 3);
@@ -203,19 +192,19 @@
 
   const ARMS = 3;
   const TWISTS = 2.4;
-  const INNER_R = 2.2; // radius kosong di tengah = "lubang hitam"
+  const INNER_R = 2.2;
   const OUTER_R = 18;
 
   for (let i = 0; i < VORTEX_COUNT; i++) {
     const arm = i % ARMS;
-    const t = Math.random(); // 0 = dekat pusat, 1 = pinggir
+    const t = Math.random();
     const radius = INNER_R + t * (OUTER_R - INNER_R);
     const spiralAngle =
       (arm / ARMS) * Math.PI * 2 +
       t * TWISTS * Math.PI * 2 +
-      (Math.random() - 0.5) * 0.45; // jitter biar gak kaku
+      (Math.random() - 0.5) * 0.45;
     const x = Math.cos(spiralAngle) * radius;
-    const z = Math.sin(spiralAngle) * radius * 0.42; // gepeng, kesan piringan miring
+    const z = Math.sin(spiralAngle) * radius * 0.42;
     const y = -8 + (Math.random() - 0.5) * 0.7;
 
     vortexPositions[i * 3] = x;
@@ -243,10 +232,9 @@
     depthWrite: false,
   });
   const vortexPoints = new THREE.Points(vortexGeo, vortexMat);
-  vortexPoints.material.opacity = 0; // fade in setelah zoom kelar
+  vortexPoints.material.opacity = 0;
   scene.add(vortexPoints);
 
-  // percikan kecil di tepi vortex biar makin rame (lapisan tambahan)
   const SPARK_COUNT = 4000;
   const sparkPositions = new Float32Array(SPARK_COUNT * 3);
   const sparkColors = new Float32Array(SPARK_COUNT * 3);
@@ -276,11 +264,10 @@
   sparkPoints.material.opacity = 0;
   scene.add(sparkPoints);
 
-  // ---------- starfield background: 2 layer biar rame & nyebar ----------
   const STAR_COUNT = 7000;
   const starPositions = new Float32Array(STAR_COUNT * 3);
   for (let i = 0; i < STAR_COUNT; i++) {
-    const r = 40 + Math.random() * 220; // disebar lebih jauh & lebih variatif
+    const r = 40 + Math.random() * 220;
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
     starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -298,7 +285,6 @@
   const starPoints = new THREE.Points(starGeo, starMat);
   scene.add(starPoints);
 
-  // layer bintang dekat + gede biar berasa "lewat" pas kamera zoom
   const NEAR_STAR_COUNT = 900;
   const nearStarPositions = new Float32Array(NEAR_STAR_COUNT * 3);
   for (let i = 0; i < NEAR_STAR_COUNT; i++) {
@@ -322,7 +308,6 @@
   const nearStarPoints = new THREE.Points(nearStarGeo, nearStarMat);
   scene.add(nearStarPoints);
 
-  // debu nebula tipis buat atmosfer, warna ungu-pink lembut
   const DUST_COUNT = 1800;
   const dustPositions = new Float32Array(DUST_COUNT * 3);
   const dustColors = new Float32Array(DUST_COUNT * 3);
@@ -354,7 +339,6 @@
   const dustPoints = new THREE.Points(dustGeo, dustMat);
   scene.add(dustPoints);
 
-  // ---------- animation loop ----------
   const clock = new THREE.Clock();
   let introDone = false;
 
@@ -363,7 +347,7 @@
     const t = clock.getElapsedTime();
 
     heartPoints.rotation.y = Math.sin(t * 0.15) * 0.35;
-    heartPoints.position.y = 1.5 + Math.sin(t * 1.1) * 0.35; // gentle heartbeat float
+    heartPoints.position.y = 1.5 + Math.sin(t * 1.1) * 0.35;
     const beat = 1 + Math.sin(t * 2.6) * 0.02;
     heartPoints.scale.set(beat, beat, beat);
 
@@ -383,16 +367,12 @@
   }
   animate();
 
-  // ============================================================
-  // Intro sequence: kartu "Galaxy Love" -> zoom keluar dari tengah
-  // bintang -> galaksi cinta muncul -> orbit controls aktif
-  // ============================================================
   function easeOutCubic(x) {
     return 1 - Math.pow(1 - x, 3);
   }
 
   function runIntroZoom() {
-    const duration = 1700; // dipercepat sesuai request — tetep smooth tapi gak lama
+    const duration = 1700;
     const startZ = camera.position.z;
     const startTime = performance.now();
 
@@ -405,7 +385,6 @@
       camera.position.y = (1 - eased) * 4;
       camera.lookAt(0, 0, 0);
 
-      // heart & disk fade + scale in di paruh kedua animasi
       const revealProgress = Math.min(Math.max((progress - 0.35) / 0.65, 0), 1);
       const revealEased = easeOutCubic(revealProgress);
       heartMat.opacity = revealEased * 0.95;
@@ -428,12 +407,9 @@
   fancyStart = runIntroZoom;
   threeReady = true;
 
-  // ============================================================
-  // DOM orbit layer: photos + love-word labels circling the heart
-  // ============================================================
   const orbitLayer = document.getElementById("orbitLayer");
   orbitLayer.style.opacity = "0";
-  const centerYPercent = 55; // aligns with heart vertical position on screen
+  const centerYPercent = 55;
 
   const orbiters = [];
 
@@ -481,7 +457,7 @@
       const angle = o.angle + t * o.speed;
       const x = Math.cos(angle) * o.radiusX;
       const y = Math.sin(angle) * o.radiusY;
-      const depth = Math.sin(angle); // -1 back, 1 front
+      const depth = Math.sin(angle);
       const scale = o.baseScale * (0.7 + (depth + 1) * 0.22);
       const opacity = 0.45 + (depth + 1) * 0.275;
       const z = Math.round(depth * 10);
@@ -493,7 +469,6 @@
   }
   animateOrbit();
 
-  // ---------- start button: supernova transition -> page2 ----------
   const startBtn = document.getElementById("startBtn");
   const flash = document.getElementById("flash");
   let transitioning = false;
@@ -502,14 +477,20 @@
     if (transitioning) return;
     transitioning = true;
     flash.classList.add("active");
+    
+    // ✅ FIX: Tambahkan timeout untuk reset state jika page2 gagal load
+    const navigationTimeout = setTimeout(() => {
+      transitioning = false; // reset jika gagal/timeout
+      flash.classList.remove("active");
+      console.warn("Navigasi ke page2.html timeout, tombol bisa diklik lagi");
+    }, 2000); // 2 detik timeout
+    
     setTimeout(() => {
+      clearTimeout(navigationTimeout);
       window.location.href = "page2.html";
     }, 950);
   });
   } catch (err) {
-    // Kalau ada apapun yang gagal di atas (CDN lemot, WebGL gak didukung,
-    // dll), threeReady tetap false sehingga tombol MULAI (safety net di
-    // paling atas) langsung lanjut ke page2.html tanpa animasi galaksi.
     console.error("galaxy.js gagal jalan penuh, fallback ke page2:", err);
   }
 })();
