@@ -113,79 +113,89 @@
   heartPoints.material.opacity = 0; // fade in setelah zoom kelar
   scene.add(heartPoints);
 
-  // ---------- meteor ring: cincin kecil2 mengelilingi si Love ----------
-  const RING_COUNT = 5200;
-  const ringPositions = new Float32Array(RING_COUNT * 3);
-  const ringColors = new Float32Array(RING_COUNT * 3);
-  const ringCol = new THREE.Color(0xffd27a);
-  const ringColDark = new THREE.Color(0xff2d55);
-  const RING_RADIUS = 15; // cincin penuh mengelilingi heart, bukan cuma di bawah
+  // ---------- spiral vortex / black hole di bawah heart (kayak referensi) ----------
+  const VORTEX_COUNT = 11000;
+  const vortexPositions = new Float32Array(VORTEX_COUNT * 3);
+  const vortexColors = new Float32Array(VORTEX_COUNT * 3);
+  const vortexColCore = new THREE.Color(0xffffff);
+  const vortexColMid = new THREE.Color(0xffd27a);
+  const vortexColEdge = new THREE.Color(0xff2d55);
+  const vortexColFar = new THREE.Color(0x4b1a6b);
 
-  for (let i = 0; i < RING_COUNT; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = RING_RADIUS + (Math.random() - 0.5) * 3.2; // ketebalan cincin
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius; // lingkaran PENUH, gak dipepetin lagi
-    const y = (Math.random() - 0.5) * 0.6;
+  const ARMS = 3;
+  const TWISTS = 2.4;
+  const INNER_R = 2.2; // radius kosong di tengah = "lubang hitam"
+  const OUTER_R = 18;
 
-    ringPositions[i * 3] = x;
-    ringPositions[i * 3 + 1] = y;
-    ringPositions[i * 3 + 2] = z;
+  for (let i = 0; i < VORTEX_COUNT; i++) {
+    const arm = i % ARMS;
+    const t = Math.random(); // 0 = dekat pusat, 1 = pinggir
+    const radius = INNER_R + t * (OUTER_R - INNER_R);
+    const spiralAngle =
+      (arm / ARMS) * Math.PI * 2 +
+      t * TWISTS * Math.PI * 2 +
+      (Math.random() - 0.5) * 0.45; // jitter biar gak kaku
+    const x = Math.cos(spiralAngle) * radius;
+    const z = Math.sin(spiralAngle) * radius * 0.42; // gepeng, kesan piringan miring
+    const y = -8 + (Math.random() - 0.5) * 0.7;
 
-    const c = ringCol.clone().lerp(ringColDark, Math.random());
-    ringColors[i * 3] = c.r;
-    ringColors[i * 3 + 1] = c.g;
-    ringColors[i * 3 + 2] = c.b;
+    vortexPositions[i * 3] = x;
+    vortexPositions[i * 3 + 1] = y;
+    vortexPositions[i * 3 + 2] = z;
+
+    let c;
+    if (t < 0.15) c = vortexColCore.clone().lerp(vortexColMid, t / 0.15);
+    else if (t < 0.55) c = vortexColMid.clone().lerp(vortexColEdge, (t - 0.15) / 0.4);
+    else c = vortexColEdge.clone().lerp(vortexColFar, (t - 0.55) / 0.45);
+
+    vortexColors[i * 3] = c.r;
+    vortexColors[i * 3 + 1] = c.g;
+    vortexColors[i * 3 + 2] = c.b;
   }
-  const ringGeo = new THREE.BufferGeometry();
-  ringGeo.setAttribute("position", new THREE.BufferAttribute(ringPositions, 3));
-  ringGeo.setAttribute("color", new THREE.BufferAttribute(ringColors, 3));
-  const ringMat = new THREE.PointsMaterial({
-    size: 0.22,
+  const vortexGeo = new THREE.BufferGeometry();
+  vortexGeo.setAttribute("position", new THREE.BufferAttribute(vortexPositions, 3));
+  vortexGeo.setAttribute("color", new THREE.BufferAttribute(vortexColors, 3));
+  const vortexMat = new THREE.PointsMaterial({
+    size: 0.16,
     vertexColors: true,
     transparent: true,
     opacity: 0.9,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
-  const ringPoints = new THREE.Points(ringGeo, ringMat);
-  ringPoints.rotation.x = Math.PI / 2.35; // dimiringkan biar keliatan kayak halo, bukan garis lurus
-  ringPoints.position.y = 1.5; // sejajar tengah heart, ngelilingin bukan cuma di bawah
-  ringPoints.material.opacity = 0; // fade in setelah zoom kelar
-  scene.add(ringPoints);
+  const vortexPoints = new THREE.Points(vortexGeo, vortexMat);
+  vortexPoints.material.opacity = 0; // fade in setelah zoom kelar
+  scene.add(vortexPoints);
 
-  // ring kedua lebih kecil & lebih cepat, biar berlapis & rame
-  const RING2_COUNT = 2600;
-  const ring2Positions = new Float32Array(RING2_COUNT * 3);
-  const ring2Colors = new Float32Array(RING2_COUNT * 3);
-  const RING2_RADIUS = 10.5;
-  for (let i = 0; i < RING2_COUNT; i++) {
+  // percikan kecil di tepi vortex biar makin rame (lapisan tambahan)
+  const SPARK_COUNT = 4000;
+  const sparkPositions = new Float32Array(SPARK_COUNT * 3);
+  const sparkColors = new Float32Array(SPARK_COUNT * 3);
+  for (let i = 0; i < SPARK_COUNT; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const radius = RING2_RADIUS + (Math.random() - 0.5) * 2;
-    ring2Positions[i * 3] = Math.cos(angle) * radius;
-    ring2Positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
-    ring2Positions[i * 3 + 2] = Math.sin(angle) * radius;
-    const c = ringCol.clone().lerp(new THREE.Color(0xffffff), Math.random() * 0.5);
-    ring2Colors[i * 3] = c.r;
-    ring2Colors[i * 3 + 1] = c.g;
-    ring2Colors[i * 3 + 2] = c.b;
+    const radius = INNER_R + Math.random() * (OUTER_R - INNER_R);
+    sparkPositions[i * 3] = Math.cos(angle) * radius;
+    sparkPositions[i * 3 + 1] = -8 + (Math.random() - 0.5) * 1.4;
+    sparkPositions[i * 3 + 2] = Math.sin(angle) * radius * 0.42;
+    const c = vortexColMid.clone().lerp(vortexColEdge, Math.random());
+    sparkColors[i * 3] = c.r;
+    sparkColors[i * 3 + 1] = c.g;
+    sparkColors[i * 3 + 2] = c.b;
   }
-  const ring2Geo = new THREE.BufferGeometry();
-  ring2Geo.setAttribute("position", new THREE.BufferAttribute(ring2Positions, 3));
-  ring2Geo.setAttribute("color", new THREE.BufferAttribute(ring2Colors, 3));
-  const ring2Mat = new THREE.PointsMaterial({
-    size: 0.15,
+  const sparkGeo = new THREE.BufferGeometry();
+  sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPositions, 3));
+  sparkGeo.setAttribute("color", new THREE.BufferAttribute(sparkColors, 3));
+  const sparkMat = new THREE.PointsMaterial({
+    size: 0.09,
     vertexColors: true,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.7,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
-  const ring2Points = new THREE.Points(ring2Geo, ring2Mat);
-  ring2Points.rotation.x = Math.PI / 2.35;
-  ring2Points.position.y = 1.5;
-  ring2Points.material.opacity = 0;
-  scene.add(ring2Points);
+  const sparkPoints = new THREE.Points(sparkGeo, sparkMat);
+  sparkPoints.material.opacity = 0;
+  scene.add(sparkPoints);
 
   // ---------- starfield background: 2 layer biar rame & nyebar ----------
   const STAR_COUNT = 7000;
@@ -278,8 +288,8 @@
     const beat = 1 + Math.sin(t * 2.6) * 0.02;
     heartPoints.scale.set(beat, beat, beat);
 
-    ringPoints.rotation.z = t * 0.22;
-    ring2Points.rotation.z = -t * 0.4;
+    vortexPoints.rotation.y = t * 0.18;
+    sparkPoints.rotation.y = -t * 0.3;
     nearStarPoints.rotation.y = t * 0.02;
     dustPoints.rotation.y = -t * 0.015;
     starPoints.rotation.y = t * 0.01;
@@ -320,8 +330,8 @@
       const revealProgress = Math.min(Math.max((progress - 0.35) / 0.65, 0), 1);
       const revealEased = easeOutCubic(revealProgress);
       heartMat.opacity = revealEased * 0.95;
-      ringMat.opacity = revealEased * 0.9;
-      ring2Mat.opacity = revealEased * 0.85;
+      vortexMat.opacity = revealEased * 0.9;
+      sparkMat.opacity = revealEased * 0.7;
       orbitLayer.style.opacity = revealEased;
 
       if (progress < 1) {
