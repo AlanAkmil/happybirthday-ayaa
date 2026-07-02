@@ -24,7 +24,7 @@ const SITE_DATA = {
 
   // Kode rahasia buat buka page 2 (lock screen).
   // GANTI ini ke tanggal spesial kalian, misal ulang tahun jadian: "1408"
-  secretCode: "0000",
+  secretCode: "3005",
   secretHint: "petunjuk: tanggal spesial kalian",
 
   birthdayTitle: "Happy Birthday, Sayangkuuu",
