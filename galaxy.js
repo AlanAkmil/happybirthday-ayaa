@@ -5,13 +5,10 @@
 (function () {
   "use strict";
 
-  // ---------- fill in name from data.js ----------
-  document.getElementById("loverName").textContent = SITE_DATA.name;
-
   // ============================================================
   // SAFETY NET: pastikan tombol MULAI selalu jalan, bahkan kalau
   // three.js/CDN gagal load (koneksi lemot dll). Ini didaftarkan
-  // PALING AWAL, sebelum kode WebGL yang berat & rawan gagal.
+  // BENERAN PALING AWAL, sebelum baris apapun yang bisa throw.
   // ============================================================
   let threeReady = false;
   let fancyStart = null;
@@ -33,6 +30,13 @@
       }, 600);
     }
   });
+
+  // ---------- fill in name from data.js (sekarang aman, gak bisa crash script) ----------
+  try {
+    document.getElementById("loverName").textContent = SITE_DATA.name;
+  } catch (err) {
+    console.error("Gagal set nama dari SITE_DATA:", err);
+  }
 
   try {
   // ---------- renderer / scene / camera ----------
@@ -477,14 +481,13 @@
     if (transitioning) return;
     transitioning = true;
     flash.classList.add("active");
-    
-    // ✅ FIX: Tambahkan timeout untuk reset state jika page2 gagal load
+
     const navigationTimeout = setTimeout(() => {
-      transitioning = false; // reset jika gagal/timeout
+      transitioning = false;
       flash.classList.remove("active");
       console.warn("Navigasi ke page2.html timeout, tombol bisa diklik lagi");
-    }, 2000); // 2 detik timeout
-    
+    }, 2000);
+
     setTimeout(() => {
       clearTimeout(navigationTimeout);
       window.location.href = "page2.html";
