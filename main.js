@@ -285,21 +285,50 @@
     setTimeout(() => toast.classList.remove("show"), 3200);
   }
 
+  // keep UI (icon/animasi bar) selalu sinkron sama status audio beneran,
+  // gak peduli dia mulai muter dari autoplay, klik tombol, atau fallback.
+  audio.addEventListener("play", () => {
+    playing = true;
+    player.classList.add("playing");
+  });
+  audio.addEventListener("pause", () => {
+    playing = false;
+    player.classList.remove("playing");
+  });
+
+  function tryAutoplay() {
+    audio
+      .play()
+      .catch(() => {
+        // ============================================================
+        // Browser blokir autoplay yang ada suaranya kalau belum ada
+        // interaksi user di HALAMAN INI (navigasi dari page1 ke page2
+        // dianggap "fresh", gesture klik MULAI/PENCET gak kebawa).
+        // Jadi musiknya dipasang nyala otomatis begitu user pertama
+        // kali sentuh/scroll/klik apapun di halaman ini — biasanya
+        // kejadian dalam sepersekian detik pas mereka mulai baca.
+        // ============================================================
+        const startOnFirstInteraction = () => {
+          audio.play().catch(() => {
+            showToast("Taruh file lagu di song.mp3 dulu ya, biar musiknya bisa muter.");
+          });
+        };
+        ["click", "touchstart", "keydown", "scroll"].forEach((evt) =>
+          window.addEventListener(evt, startOnFirstInteraction, { once: true, passive: true })
+        );
+      });
+  }
+  tryAutoplay();
+
   toggle.addEventListener("click", () => {
     if (!playing) {
       audio
         .play()
-        .then(() => {
-          playing = true;
-          player.classList.add("playing");
-        })
         .catch(() => {
           showToast("Taruh file lagu di song.mp3 dulu ya, biar musiknya bisa muter.");
         });
     } else {
       audio.pause();
-      playing = false;
-      player.classList.remove("playing");
     }
   });
 })();
