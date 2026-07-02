@@ -92,6 +92,8 @@ Happy birthday. I love you, always.`,
 
 // subset dipakai buat orbit di page 1 (biar gak kepenuhan/berat)
 // pake modulo biar gak error walau jumlah foto di photos.js kurang dari 8
-SITE_DATA.orbitPhotos = [0, 2, 4, 6, 1, 3, 5, 0].map(
+// orbit di page 1 cuma nampilin 8 biar gak kepenuhan/berat — disebar rata
+// dari semua 16 foto yang ada (index genap) biar kewakilan semua
+SITE_DATA.orbitPhotos = [0, 2, 4, 6, 8, 10, 12, 14].map(
   (i) => SITE_DATA.photos[i % SITE_DATA.photos.length]
 );
