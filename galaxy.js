@@ -5,6 +5,19 @@
 (function () {
   "use strict";
 
+  // ============================================================
+  // DEBUG: tampilkan error langsung di layar HP (sementara,
+  // buat nyari bug — boleh dihapus lagi kalau udah kelar)
+  // ============================================================
+  window.addEventListener("error", (e) => {
+    alert("ERROR: " + e.message + "\n(baris " + e.lineno + ")");
+  });
+
+  // ============================================================
+  // SAFETY NET: pastikan tombol MULAI selalu jalan, bahkan kalau
+  // three.js/CDN gagal load (koneksi lemot dll). Didaftarkan
+  // BENERAN PALING AWAL, sebelum baris apapun yang bisa throw.
+  // ============================================================
   let threeReady = false;
   let fancyStart = null;
   const introBtnEl = document.getElementById("introBtn");
@@ -470,22 +483,27 @@
   let transitioning = false;
 
   startBtn.addEventListener("click", () => {
-    if (transitioning) return;
-    transitioning = true;
-    flash.classList.add("active");
+    try {
+      if (transitioning) return;
+      transitioning = true;
+      flash.classList.add("active");
 
-    const navigationTimeout = setTimeout(() => {
-      transitioning = false;
-      flash.classList.remove("active");
-      console.warn("Navigasi ke page2.html timeout, tombol bisa diklik lagi");
-    }, 2000);
+      const navigationTimeout = setTimeout(() => {
+        transitioning = false;
+        flash.classList.remove("active");
+        alert("Navigasi ke page2.html TIMEOUT setelah 2 detik — kemungkinan page2.html gagal dimuat.");
+      }, 2000);
 
-    setTimeout(() => {
-      clearTimeout(navigationTimeout);
-      window.location.href = "page2.html";
-    }, 950);
+      setTimeout(() => {
+        clearTimeout(navigationTimeout);
+        window.location.href = "page2.html";
+      }, 950);
+    } catch (err) {
+      alert("ERROR pas klik Pencet: " + err.message);
+    }
   });
   } catch (err) {
     console.error("galaxy.js gagal jalan penuh, fallback ke page2:", err);
+    alert("ERROR utama galaxy.js: " + err.message);
   }
 })();
