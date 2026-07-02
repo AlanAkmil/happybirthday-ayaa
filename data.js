@@ -1,10 +1,7 @@
 /* ============================================================
-   data.js — semua konten TEKS gampang diubah di sini.
-   Foto-fotonya sekarang dipisah di photos.js biar file ini
-   gak numpuk/berat pas dibuka & diedit.
-   PENTING: load photos.js SEBELUM data.js di index.html, contoh:
-     <script src="photos.js"></script>
-     <script src="data.js"></script>
+   data.js — semua konten gampang diubah di sini.
+   Foto sengaja di-embed sebagai base64 (bukan file terpisah)
+   biar GAK ADA LAGI masalah "foto ilang pas upload ke GitHub".
    ============================================================ */
 
 const SITE_DATA = {
@@ -87,8 +84,10 @@ Happy birthday. I love you, always.`,
 
   musicSrc: "https://www.image2url.com/r2/default/audio/1782951891615-c1927273-0094-4949-ba44-f788967638e4.mp3",
   musicTitle: "Lagu Spesial Kalian",
-  photos: SITE_PHOTOS, // <- diambil dari photos.js (load photos.js SEBELUM data.js di HTML)
 
+  // Foto ada di file terpisah: photos.js (biar upload-nya lebih ringan)
+  photos: SITE_PHOTOS,
+};
 
 
 // subset dipakai buat orbit di page 1 (biar gak kepenuhan/berat)
