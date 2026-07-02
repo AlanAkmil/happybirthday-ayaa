@@ -14,6 +14,12 @@ const SITE_DATA = {
     "Sayangku",
     "Amor Eterno",
     "Untuk Selamanya",
+    "Happy Birthday Ayaa 🎉❤️",
+    "Happy Birthday Ayaa ❤️",
+    "Happy Birthday Ayaa 🎂",
+    "Selamat Ulang Tahun Ayaa 🎊",
+    "HBD Ayaaa 🎉",
+    "Happy Birthday Sayangku ❤️",
   ],
 
   // Kode rahasia buat buka page 2 (lock screen).
@@ -58,27 +64,27 @@ Happy birthday. I love you, always.`,
 
   closingMessage: "Aku nggak janji semuanya bakal selalu jalan sempurna, tapi aku janji bakal tetap di sini, nemenin kamu, apapun yang terjadi. I love you, always.",
 
-  // Kuis receh — placeholder, tinggal edit sesuai kalian berdua
+  // Kuis receh
   quiz: [
     {
-      q: "Pertama kali ketemu kita di mana?",
-      options: ["Sekolah", "Media sosial", "Diperkenalkan teman", "Kejadian gak sengaja"],
+      q: "Apa warna favorit aku?",
+      options: ["Merah", "Biru", "Hijau", "Kuning"],
       correct: 1,
     },
     {
-      q: "Makanan favorit aku apa coba?",
-      options: ["Pedas-pedas", "Manis-manis", "Yang penting ada kamu", "Semua juga suka"],
-      correct: 2,
+      q: "Apa makanan favorit aku?",
+      options: ["Nasi Padang", "Ayam Geprek", "Mie Ayam", "Baso"],
+      correct: 0,
     },
     {
-      q: "Kalo lagi kangen, aku biasanya ngapain?",
-      options: ["Diem aja", "Chat kamu duluan", "Nelpon random", "Nulis surat kayak gini"],
-      correct: 1,
+      q: "Anime favorit aku apa?",
+      options: ["One Piece", "Dragon Ball", "Naruto"],
+      correct: 0,
     },
     {
-      q: "Hal yang paling aku suka dari kamu?",
-      options: ["Senyumnya", "Cerewetnya", "Semuanya", "Sabarnya"],
-      correct: 2,
+      q: "Game favorit aku apa?",
+      options: ["Mobile Legend", "Free Fire", "Roblox", "Apa aja, yang penting sama kamu"],
+      correct: 3,
     },
   ],
 
