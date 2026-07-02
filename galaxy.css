@@ -62,6 +62,12 @@ html,body{
   background:linear-gradient(145deg, var(--gold), var(--crimson));
   box-shadow:0 0 18px rgba(255,45,85,0.55), 0 0 4px rgba(255,210,122,0.6);
   will-change:transform, opacity;
+  pointer-events:auto;
+  cursor:pointer;
+  transition:box-shadow 0.25s ease;
+}
+.orbit-photo:hover{
+  box-shadow:0 0 26px rgba(255,45,85,0.85), 0 0 8px rgba(255,210,122,0.85);
 }
 .orbit-photo img{
   width:100%;
@@ -211,6 +217,16 @@ html,body{
   border:1px solid rgba(255,45,85,0.35);
   box-shadow:0 0 50px rgba(255,45,85,0.25), 0 20px 60px rgba(0,0,0,0.6);
 }
+.intro-gif{
+  display:block;
+  width:96px;
+  height:96px;
+  object-fit:cover;
+  border-radius:50%;
+  margin:0 auto 12px;
+  border:2px solid rgba(255,210,122,0.55);
+  box-shadow:0 0 20px rgba(255,45,85,0.4);
+}
 .intro-heart{
   display:inline-block;
   font-size:34px;
@@ -262,6 +278,35 @@ html,body{
 }
 .intro-btn:hover{ transform:translateY(-2px); }
 .intro-btn-heart{ font-size:14px; }
+
+/* ---------------- photo lightbox ---------------- */
+.photo-lightbox{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(5,1,10,0.9);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity 0.3s ease, visibility 0.3s ease;
+}
+.photo-lightbox.visible{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.photo-lightbox img{
+  max-width:min(92vw, 480px);
+  max-height:82vh;
+  border-radius:16px;
+  border:2px solid rgba(255,210,122,0.5);
+  box-shadow:0 0 50px rgba(255,45,85,0.4), 0 20px 60px rgba(0,0,0,0.7);
+  object-fit:contain;
+}
 
 @media (max-width:600px){
   .orbit-photo{ width:46px; height:46px; }
