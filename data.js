@@ -91,8 +91,7 @@ Happy birthday. I love you, always.`,
 
 
 // subset dipakai buat orbit di page 1 (biar gak kepenuhan/berat)
-SITE_DATA.orbitPhotos = [
-  SITE_DATA.photos[0], SITE_DATA.photos[2], SITE_DATA.photos[4],
-  SITE_DATA.photos[6], SITE_DATA.photos[8], SITE_DATA.photos[10],
-  SITE_DATA.photos[12], SITE_DATA.photos[14],
-];
+// pake modulo biar gak error walau jumlah foto di photos.js kurang dari 8
+SITE_DATA.orbitPhotos = [0, 2, 4, 6, 1, 3, 5, 0].map(
+  (i) => SITE_DATA.photos[i % SITE_DATA.photos.length]
+);
