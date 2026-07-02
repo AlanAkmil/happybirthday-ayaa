@@ -15,7 +15,7 @@ const SITE_DATA = {
     "Amor Eterno",
     "Infinito",
     "Sayangku",
-    "My Love",
+    "Amor Eterno",
     "Untuk Selamanya",
   ],
 
