@@ -113,49 +113,85 @@
   heartPoints.material.opacity = 0; // fade in setelah zoom kelar
   scene.add(heartPoints);
 
-  // ---------- swirling accretion disk under the heart ----------
-  const DISK_COUNT = 2500;
-  const diskPositions = new Float32Array(DISK_COUNT * 3);
-  const diskColors = new Float32Array(DISK_COUNT * 3);
-  const diskCol = new THREE.Color(0xff6b86);
-  const diskColDark = new THREE.Color(0x4b1a6b);
+  // ---------- meteor ring: cincin kecil2 mengelilingi si Love ----------
+  const RING_COUNT = 5200;
+  const ringPositions = new Float32Array(RING_COUNT * 3);
+  const ringColors = new Float32Array(RING_COUNT * 3);
+  const ringCol = new THREE.Color(0xffd27a);
+  const ringColDark = new THREE.Color(0xff2d55);
+  const RING_RADIUS = 15; // cincin penuh mengelilingi heart, bukan cuma di bawah
 
-  for (let i = 0; i < DISK_COUNT; i++) {
+  for (let i = 0; i < RING_COUNT; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const radius = 4 + Math.random() * 15;
+    const radius = RING_RADIUS + (Math.random() - 0.5) * 3.2; // ketebalan cincin
     const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius * 0.35;
-    const y = -8.5 + (Math.random() - 0.5) * 0.8;
+    const z = Math.sin(angle) * radius; // lingkaran PENUH, gak dipepetin lagi
+    const y = (Math.random() - 0.5) * 0.6;
 
-    diskPositions[i * 3] = x;
-    diskPositions[i * 3 + 1] = y;
-    diskPositions[i * 3 + 2] = z;
+    ringPositions[i * 3] = x;
+    ringPositions[i * 3 + 1] = y;
+    ringPositions[i * 3 + 2] = z;
 
-    const c = diskCol.clone().lerp(diskColDark, Math.random());
-    diskColors[i * 3] = c.r;
-    diskColors[i * 3 + 1] = c.g;
-    diskColors[i * 3 + 2] = c.b;
+    const c = ringCol.clone().lerp(ringColDark, Math.random());
+    ringColors[i * 3] = c.r;
+    ringColors[i * 3 + 1] = c.g;
+    ringColors[i * 3 + 2] = c.b;
   }
-  const diskGeo = new THREE.BufferGeometry();
-  diskGeo.setAttribute("position", new THREE.BufferAttribute(diskPositions, 3));
-  diskGeo.setAttribute("color", new THREE.BufferAttribute(diskColors, 3));
-  const diskMat = new THREE.PointsMaterial({
-    size: 0.14,
+  const ringGeo = new THREE.BufferGeometry();
+  ringGeo.setAttribute("position", new THREE.BufferAttribute(ringPositions, 3));
+  ringGeo.setAttribute("color", new THREE.BufferAttribute(ringColors, 3));
+  const ringMat = new THREE.PointsMaterial({
+    size: 0.22,
     vertexColors: true,
     transparent: true,
-    opacity: 0.75,
+    opacity: 0.9,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
-  const diskPoints = new THREE.Points(diskGeo, diskMat);
-  diskPoints.material.opacity = 0; // fade in setelah zoom kelar
-  scene.add(diskPoints);
+  const ringPoints = new THREE.Points(ringGeo, ringMat);
+  ringPoints.rotation.x = Math.PI / 2.35; // dimiringkan biar keliatan kayak halo, bukan garis lurus
+  ringPoints.position.y = 1.5; // sejajar tengah heart, ngelilingin bukan cuma di bawah
+  ringPoints.material.opacity = 0; // fade in setelah zoom kelar
+  scene.add(ringPoints);
 
-  // ---------- starfield background ----------
-  const STAR_COUNT = 3500;
+  // ring kedua lebih kecil & lebih cepat, biar berlapis & rame
+  const RING2_COUNT = 2600;
+  const ring2Positions = new Float32Array(RING2_COUNT * 3);
+  const ring2Colors = new Float32Array(RING2_COUNT * 3);
+  const RING2_RADIUS = 10.5;
+  for (let i = 0; i < RING2_COUNT; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = RING2_RADIUS + (Math.random() - 0.5) * 2;
+    ring2Positions[i * 3] = Math.cos(angle) * radius;
+    ring2Positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+    ring2Positions[i * 3 + 2] = Math.sin(angle) * radius;
+    const c = ringCol.clone().lerp(new THREE.Color(0xffffff), Math.random() * 0.5);
+    ring2Colors[i * 3] = c.r;
+    ring2Colors[i * 3 + 1] = c.g;
+    ring2Colors[i * 3 + 2] = c.b;
+  }
+  const ring2Geo = new THREE.BufferGeometry();
+  ring2Geo.setAttribute("position", new THREE.BufferAttribute(ring2Positions, 3));
+  ring2Geo.setAttribute("color", new THREE.BufferAttribute(ring2Colors, 3));
+  const ring2Mat = new THREE.PointsMaterial({
+    size: 0.15,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const ring2Points = new THREE.Points(ring2Geo, ring2Mat);
+  ring2Points.rotation.x = Math.PI / 2.35;
+  ring2Points.position.y = 1.5;
+  ring2Points.material.opacity = 0;
+  scene.add(ring2Points);
+
+  // ---------- starfield background: 2 layer biar rame & nyebar ----------
+  const STAR_COUNT = 7000;
   const starPositions = new Float32Array(STAR_COUNT * 3);
   for (let i = 0; i < STAR_COUNT; i++) {
-    const r = 60 + Math.random() * 140;
+    const r = 40 + Math.random() * 220; // disebar lebih jauh & lebih variatif
     const theta = Math.random() * Math.PI * 2;
     const phi = Math.acos(2 * Math.random() - 1);
     starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -173,6 +209,62 @@
   const starPoints = new THREE.Points(starGeo, starMat);
   scene.add(starPoints);
 
+  // layer bintang dekat + gede biar berasa "lewat" pas kamera zoom
+  const NEAR_STAR_COUNT = 900;
+  const nearStarPositions = new Float32Array(NEAR_STAR_COUNT * 3);
+  for (let i = 0; i < NEAR_STAR_COUNT; i++) {
+    const r = 15 + Math.random() * 60;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    nearStarPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    nearStarPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    nearStarPositions[i * 3 + 2] = r * Math.cos(phi);
+  }
+  const nearStarGeo = new THREE.BufferGeometry();
+  nearStarGeo.setAttribute("position", new THREE.BufferAttribute(nearStarPositions, 3));
+  const nearStarMat = new THREE.PointsMaterial({
+    size: 0.55,
+    color: 0xffe8d0,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const nearStarPoints = new THREE.Points(nearStarGeo, nearStarMat);
+  scene.add(nearStarPoints);
+
+  // debu nebula tipis buat atmosfer, warna ungu-pink lembut
+  const DUST_COUNT = 1800;
+  const dustPositions = new Float32Array(DUST_COUNT * 3);
+  const dustColors = new Float32Array(DUST_COUNT * 3);
+  const dustColA = new THREE.Color(0x4b1a6b);
+  const dustColB = new THREE.Color(0xff6b86);
+  for (let i = 0; i < DUST_COUNT; i++) {
+    const r = 20 + Math.random() * 90;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    dustPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    dustPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.4;
+    dustPositions[i * 3 + 2] = r * Math.cos(phi);
+    const c = dustColA.clone().lerp(dustColB, Math.random());
+    dustColors[i * 3] = c.r;
+    dustColors[i * 3 + 1] = c.g;
+    dustColors[i * 3 + 2] = c.b;
+  }
+  const dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPositions, 3));
+  dustGeo.setAttribute("color", new THREE.BufferAttribute(dustColors, 3));
+  const dustMat = new THREE.PointsMaterial({
+    size: 0.5,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.18,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const dustPoints = new THREE.Points(dustGeo, dustMat);
+  scene.add(dustPoints);
+
   // ---------- animation loop ----------
   const clock = new THREE.Clock();
   let introDone = false;
@@ -186,7 +278,10 @@
     const beat = 1 + Math.sin(t * 2.6) * 0.02;
     heartPoints.scale.set(beat, beat, beat);
 
-    diskPoints.rotation.y = t * 0.25;
+    ringPoints.rotation.z = t * 0.22;
+    ring2Points.rotation.z = -t * 0.4;
+    nearStarPoints.rotation.y = t * 0.02;
+    dustPoints.rotation.y = -t * 0.015;
     starPoints.rotation.y = t * 0.01;
 
     if (introDone) {
@@ -208,7 +303,7 @@
   }
 
   function runIntroZoom() {
-    const duration = 3400; // ms, biar terasa smooth & pelan
+    const duration = 1700; // dipercepat sesuai request — tetep smooth tapi gak lama
     const startZ = camera.position.z;
     const startTime = performance.now();
 
@@ -225,7 +320,8 @@
       const revealProgress = Math.min(Math.max((progress - 0.35) / 0.65, 0), 1);
       const revealEased = easeOutCubic(revealProgress);
       heartMat.opacity = revealEased * 0.95;
-      diskMat.opacity = revealEased * 0.75;
+      ringMat.opacity = revealEased * 0.9;
+      ring2Mat.opacity = revealEased * 0.85;
       orbitLayer.style.opacity = revealEased;
 
       if (progress < 1) {
@@ -254,7 +350,7 @@
 
   const orbiters = [];
 
-  SITE_DATA.photos.forEach((src, i) => {
+  SITE_DATA.orbitPhotos.forEach((src, i) => {
     const el = document.createElement("div");
     el.className = "orbit-photo";
     const img = document.createElement("img");
@@ -268,7 +364,7 @@
       radiusX: 130 + (i % 3) * 55,
       radiusY: 60 + (i % 3) * 22,
       speed: 0.15 + (i % 4) * 0.05,
-      angle: (i / SITE_DATA.photos.length) * Math.PI * 2,
+      angle: (i / SITE_DATA.orbitPhotos.length) * Math.PI * 2,
       baseScale: 0.85 + (i % 3) * 0.15,
     });
   });
