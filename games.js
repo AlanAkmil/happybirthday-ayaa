@@ -35,6 +35,7 @@
     modal.classList.remove("active");
     stage.innerHTML = "";
     if (window.__catchInterval) clearInterval(window.__catchInterval);
+    if (window.__catchSpawnTimer) clearInterval(window.__catchSpawnTimer);
   }
   closeBtn.addEventListener("click", closeGame);
   modal.addEventListener("click", (e) => {
@@ -204,13 +205,13 @@
       setTimeout(() => heart.remove(), duration * 1000 + 50);
     }
 
-    const spawnTimer = setInterval(spawnHeart, 500);
+    window.__catchSpawnTimer = setInterval(spawnHeart, 500);
     window.__catchInterval = setInterval(() => {
       timeLeft--;
       timeEl.textContent = timeLeft;
       if (timeLeft <= 0) {
         clearInterval(window.__catchInterval);
-        clearInterval(spawnTimer);
+        clearInterval(window.__catchSpawnTimer);
         catchStage.innerHTML = "";
         stage.innerHTML = `
           <h3 class="game-title">Waktu Habis!</h3>
