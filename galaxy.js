@@ -8,6 +8,33 @@
   // ---------- fill in name from data.js ----------
   document.getElementById("loverName").textContent = SITE_DATA.name;
 
+  // ============================================================
+  // SAFETY NET: pastikan tombol MULAI selalu jalan, bahkan kalau
+  // three.js/CDN gagal load (koneksi lemot dll). Ini didaftarkan
+  // PALING AWAL, sebelum kode WebGL yang berat & rawan gagal.
+  // ============================================================
+  let threeReady = false;
+  let fancyStart = null;
+  const introBtnEl = document.getElementById("introBtn");
+  const introOverlayEl = document.getElementById("introOverlay");
+  let introClicked = false;
+
+  introBtnEl.addEventListener("click", () => {
+    if (introClicked) return;
+    introClicked = true;
+    introOverlayEl.classList.add("hidden");
+    if (threeReady && fancyStart) {
+      fancyStart();
+    } else {
+      // fallback: three.js belum/gagal siap, langsung lanjut ke page 2
+      document.getElementById("hud").classList.add("visible");
+      setTimeout(() => {
+        window.location.href = "page2.html";
+      }, 600);
+    }
+  });
+
+  try {
   // ---------- renderer / scene / camera ----------
   const canvas = document.getElementById("scene");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -30,22 +57,74 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // ---------- orbit controls (drag to look around, enabled after intro) ----------
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-  controls.enablePan = false;
-  controls.enableZoom = true;
-  controls.minDistance = 26;
-  controls.maxDistance = 60;
-  controls.minPolarAngle = Math.PI / 2 - 0.5;
-  controls.maxPolarAngle = Math.PI / 2 + 0.5;
-  controls.minAzimuthAngle = -0.7;
-  controls.maxAzimuthAngle = 0.7;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.35;
-  controls.target.set(0, 0, 0);
-  controls.enabled = false; // baru aktif setelah animasi zoom kelar
+  // ---------- drag-to-look (custom, no external library needed) ----------
+  // Sebelumnya pakai OrbitControls dari CDN luar — kalau koneksi lemot dan
+  // script itu gagal ke-load, seluruh galaxy.js ikut berhenti (macet total,
+  // termasuk tombol MULAI). Sekarang murni vanilla, gak nunggu CDN lain.
+  const controls = {
+    enabled: false,
+    azimuth: 0,
+    polar: Math.PI / 2,
+    minAzimuth: -0.7,
+    maxAzimuth: 0.7,
+    minPolar: Math.PI / 2 - 0.5,
+    maxPolar: Math.PI / 2 + 0.5,
+    radius: FINAL_Z,
+    autoDrift: 0.06, // ambient sway kecil kalau lagi gak di-drag
+  };
+
+  let dragging = false;
+  let lastX = 0;
+  let lastY = 0;
+
+  function dragStart(x, y) {
+    if (!controls.enabled) return;
+    dragging = true;
+    lastX = x;
+    lastY = y;
+  }
+  function dragMove(x, y) {
+    if (!controls.enabled || !dragging) return;
+    const dx = (x - lastX) * 0.005;
+    const dy = (y - lastY) * 0.005;
+    lastX = x;
+    lastY = y;
+    controls.azimuth = Math.min(controls.maxAzimuth, Math.max(controls.minAzimuth, controls.azimuth + dx));
+    controls.polar = Math.min(controls.maxPolar, Math.max(controls.minPolar, controls.polar + dy));
+  }
+  function dragEnd() {
+    dragging = false;
+  }
+
+  renderer.domElement.addEventListener("mousedown", (e) => dragStart(e.clientX, e.clientY));
+  window.addEventListener("mousemove", (e) => dragMove(e.clientX, e.clientY));
+  window.addEventListener("mouseup", dragEnd);
+  renderer.domElement.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length) dragStart(e.touches[0].clientX, e.touches[0].clientY);
+    },
+    { passive: true }
+  );
+  renderer.domElement.addEventListener(
+    "touchmove",
+    (e) => {
+      if (e.touches.length) dragMove(e.touches[0].clientX, e.touches[0].clientY);
+    },
+    { passive: true }
+  );
+  renderer.domElement.addEventListener("touchend", dragEnd);
+
+  function updateControls(t) {
+    if (!controls.enabled) return;
+    const drift = dragging ? 0 : Math.sin(t * 0.15) * controls.autoDrift;
+    const az = controls.azimuth + drift;
+    const x = controls.radius * Math.sin(controls.polar) * Math.sin(az);
+    const z = controls.radius * Math.sin(controls.polar) * Math.cos(az);
+    const y = controls.radius * Math.cos(controls.polar) * -1 + controls.radius * Math.cos(Math.PI / 2);
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 0, 0);
+  }
 
   // ---------- heart parametric shape ----------
   function heartPoint(t) {
@@ -295,7 +374,7 @@
     starPoints.rotation.y = t * 0.01;
 
     if (introDone) {
-      controls.update();
+      updateControls(t);
     } else {
       camera.lookAt(0, 0, 0);
     }
@@ -346,10 +425,8 @@
     requestAnimationFrame(step);
   }
 
-  document.getElementById("introBtn").addEventListener("click", () => {
-    document.getElementById("introOverlay").classList.add("hidden");
-    runIntroZoom();
-  });
+  fancyStart = runIntroZoom;
+  threeReady = true;
 
   // ============================================================
   // DOM orbit layer: photos + love-word labels circling the heart
@@ -429,4 +506,10 @@
       window.location.href = "page2.html";
     }, 950);
   });
+  } catch (err) {
+    // Kalau ada apapun yang gagal di atas (CDN lemot, WebGL gak didukung,
+    // dll), threeReady tetap false sehingga tombol MULAI (safety net di
+    // paling atas) langsung lanjut ke page2.html tanpa animasi galaksi.
+    console.error("galaxy.js gagal jalan penuh, fallback ke page2:", err);
+  }
 })();
